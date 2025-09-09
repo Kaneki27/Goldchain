@@ -108,7 +108,7 @@ export default function Register({ setUser }: RegisterProps) {
     
     try {
       if (!isConnected) {
-        await connectWallet();
+        await connectWallet('pera');
       }
       
       if (address) {

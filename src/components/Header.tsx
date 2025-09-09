@@ -306,7 +306,7 @@ export default function Header() {
       {/* Wallet Selection Modal */}
       <Modal isOpen={isWalletModalOpen} onClose={closeWalletModal} isCentered>
         <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent borderRadius="xl" className="gold-wave">
+        <ModalContent borderRadius="xl" bg={useColorModeValue('white', 'gray.800')}>
           <ModalHeader>Connect Your Wallet</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
@@ -317,7 +317,7 @@ export default function Header() {
                 borderRadius="md" 
                 onClick={() => handleWalletSelect('pera')}
                 className="card-hover"
-                bg="white"
+                bg={useColorModeValue('white', 'gray.700')}
                 cursor="pointer"
                 position="relative"
                 overflow="hidden"
@@ -329,8 +329,8 @@ export default function Header() {
                     alt="Pera Wallet" 
                   />
                   <Box>
-                    <Text fontWeight="bold">Pera Wallet</Text>
-                    <Text fontSize="sm">The official Algorand wallet</Text>
+                    <Text fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>Pera Wallet</Text>
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>The official Algorand wallet</Text>
                   </Box>
                 </HStack>
                 {connecting && selectedWallet === 'pera' && (
@@ -344,7 +344,7 @@ export default function Header() {
                     justify="center"
                     align="center"
                   >
-                    <Text>Connecting...</Text>
+                    <Text color="gray.800">Connecting...</Text>
                   </Flex>
                 )}
               </Box>
@@ -355,7 +355,7 @@ export default function Header() {
                 borderRadius="md" 
                 onClick={() => handleWalletSelect('myalgo')}
                 className="card-hover"
-                bg="white"
+                bg={useColorModeValue('white', 'gray.700')}
                 cursor="pointer"
                 position="relative"
                 overflow="hidden"
@@ -367,8 +367,8 @@ export default function Header() {
                     alt="MyAlgo Wallet" 
                   />
                   <Box>
-                    <Text fontWeight="bold">MyAlgo Wallet</Text>
-                    <Text fontSize="sm">A secure wallet for the Algorand ecosystem</Text>
+                    <Text fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>MyAlgo Wallet</Text>
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>A secure wallet for the Algorand ecosystem</Text>
                   </Box>
                 </HStack>
                 {connecting && selectedWallet === 'myalgo' && (
@@ -382,7 +382,7 @@ export default function Header() {
                     justify="center"
                     align="center"
                   >
-                    <Text>Connecting...</Text>
+                    <Text color="gray.800">Connecting...</Text>
                   </Flex>
                 )}
               </Box>
@@ -476,23 +476,22 @@ const DesktopNav = ({ currentPath }: { currentPath: string }) => {
                     : linkColor
                 }
                 position="relative"
-                _hover={{
-                  textDecoration: 'none',
-                  color: linkHoverColor,
-                }}
+                transition="color .2s ease, transform .2s ease"
+                
                 _after={
-                  currentPath === navItem.href
-                    ? {
-                        content: '""',
-                        position: 'absolute',
-                        width: '100%',
-                        height: '2px',
-                        bottom: 0,
-                        left: 0,
-                        background: 'gold.500',
-                      }
-                    : {}
+                  {
+                    content: '""',
+                    position: 'absolute',
+                    width: currentPath === navItem.href ? '100%' : '0%',
+                    height: '2px',
+                    bottom: 0,
+                    left: 0,
+                    background: 'gold.500',
+                    transition: 'width .2s ease',
+                  }
                 }
+                _hover={{ textDecoration: 'none', color: linkHoverColor, transform: 'translateY(-2px)' }}
+                sx={{ '&:hover::after': { width: '100%' } }}
               >
                 {navItem.label}
               </Link>
@@ -593,10 +592,25 @@ const MobileNavItem = ({ label, children, href, isActive }: NavItem & { isActive
         bg={isActive ? bgColor : 'transparent'}
         fontWeight={isActive ? 'bold' : 'normal'}
         color={isActive ? 'gold.500' : 'inherit'}
+        position="relative"
+        transition="transform .2s ease"
+        _active={{ transform: 'scale(0.98)' }}
       >
         <Text
           fontWeight={600}
           color={useColorModeValue('gray.600', 'gray.200')}
+          position="relative"
+          _after={{
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            bottom: -2,
+            width: isActive ? '100%' : '0%',
+            height: '2px',
+            background: 'gold.500',
+            transition: 'width .2s ease',
+          }}
+          _groupHover={{ _after: { width: '100%' } }}
         >
           {label}
         </Text>

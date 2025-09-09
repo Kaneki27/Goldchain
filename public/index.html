@@ -29,6 +29,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chakra UI Color Mode Script -->
+    <script>
+      (function() {
+        // Set dark mode as default
+        localStorage.setItem('chakra-ui-color-mode', 'dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.style.colorScheme = 'dark';
+      })();
+    </script>
     <!-- Base styles -->
     <style>
       body {
@@ -38,6 +47,13 @@
           'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        background-color: #0F1115;
+        color: white;
+      }
+      
+      /* Ensure all text is visible */
+      * {
+        color: inherit;
       }
 
       /* Animations */

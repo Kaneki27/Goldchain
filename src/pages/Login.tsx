@@ -96,7 +96,7 @@ export default function Login({ setUser }: LoginProps) {
     
     try {
       if (!isConnected) {
-        await connectWallet();
+        await connectWallet('pera');
       }
       
       if (address) {

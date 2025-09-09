@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import { useToast } from '@chakra-ui/react';
 import algosdk from 'algosdk';
 import { PeraWalletConnect } from '@perawallet/connect';
@@ -54,6 +54,30 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return new algosdk.Algodv2(token, base, port);
   }, []);
 
+  const handleConnection = useCallback((addr: string, wallet: WalletType) => {
+    setAddress(addr);
+    setIsConnected(true);
+    setWalletType(wallet);
+    localStorage.setItem('walletType', wallet);
+    refreshBalance(addr);
+    toast({
+      title: 'Wallet Connected',
+      description: `Connected to ${addr.slice(0, 6)}...${addr.slice(-4)}`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+      position: 'bottom-right',
+    });
+  }, [toast]);
+
+  const handleDisconnection = useCallback(() => {
+    setAddress(null);
+    setIsConnected(false);
+    setWalletType(null);
+    setBalance('0');
+    localStorage.removeItem('walletType');
+  }, []);
+
   useEffect(() => {
     const sessionWalletType = localStorage.getItem('walletType');
     if (sessionWalletType) {
@@ -72,31 +96,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       pera.connector?.off('disconnect');
     };
-  }, []);
+  }, [handleConnection, handleDisconnection]);
 
-  const handleConnection = (addr: string, wallet: WalletType) => {
-    setAddress(addr);
-    setIsConnected(true);
-    setWalletType(wallet);
-    localStorage.setItem('walletType', wallet);
-    refreshBalance(addr);
-    toast({
-      title: 'Wallet Connected',
-      description: `Connected to ${addr.slice(0, 6)}...${addr.slice(-4)}`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-      position: 'bottom-right',
-    });
-  };
-
-  const handleDisconnection = () => {
-    setAddress(null);
-    setIsConnected(false);
-    setWalletType(null);
-    setBalance('0');
-    localStorage.removeItem('walletType');
-  };
+  
 
   const refreshBalance = async (addr: string) => {
     try {
@@ -148,8 +150,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const params = await algod.getTransactionParams().do();
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: address,
-      to: to,
+      sender: address,
+      receiver: to,
       amount: Math.round(parseFloat(amountAlgo) * 1e6),
       note: note ? new TextEncoder().encode(note) : undefined,
       suggestedParams: params,
@@ -169,9 +171,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       const result = await algod.sendRawTransaction(signedTxn).do();
-      await algosdk.waitForConfirmation(algod, result.txId, 4);
+      await algosdk.waitForConfirmation(algod, result.txid, 4);
       await refreshBalance(address);
-      return result.txId;
+      return result.txid;
     } catch (error) {
       console.error(error);
       throw new Error('Transaction failed');

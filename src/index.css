@@ -7,7 +7,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f9f9f9;
+  background-color: #0F1115;
+  color: white;
   min-height: 100vh;
 }
 
@@ -192,7 +193,7 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #2D3748;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -297,4 +298,59 @@ code {
 
 .connect-button:hover::before {
   left: 100%;
+}
+
+/* Text Visibility Fixes */
+* {
+  color: inherit;
+}
+
+/* Ensure all text elements have proper contrast */
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, label {
+  color: inherit;
+}
+
+/* Fix for Chakra UI components */
+.chakra-ui-light * {
+  color: #1A202C !important;
+}
+
+.chakra-ui-dark * {
+  color: #FFFFFF !important;
+}
+
+/* Specific fixes for common text visibility issues */
+.chakra-text,
+.chakra-heading,
+.chakra-form-label,
+.chakra-stat-label,
+.chakra-stat-number,
+.chakra-stat-help-text {
+  color: inherit !important;
+}
+
+/* Modal and popover text visibility */
+.chakra-modal__content,
+.chakra-popover__content,
+.chakra-menu__content {
+  color: #1A202C !important;
+}
+
+.chakra-modal__content *,
+.chakra-popover__content *,
+.chakra-menu__content * {
+  color: #1A202C !important;
+}
+
+/* Dark mode modal text */
+[data-theme="dark"] .chakra-modal__content,
+[data-theme="dark"] .chakra-popover__content,
+[data-theme="dark"] .chakra-menu__content {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .chakra-modal__content *,
+[data-theme="dark"] .chakra-popover__content *,
+[data-theme="dark"] .chakra-menu__content * {
+  color: #FFFFFF !important;
 }

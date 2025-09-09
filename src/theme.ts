@@ -48,6 +48,21 @@ const theme = extendTheme({
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         _hover: { transform: 'translateY(-2px)', boxShadow: 'lg' },
       },
+      // Ensure all text is visible
+      '*': {
+        color: 'inherit',
+      },
+      // Fix text visibility in cards and modals
+      '.chakra-ui-light': {
+        '*': {
+          color: 'gray.800 !important',
+        },
+      },
+      '.chakra-ui-dark': {
+        '*': {
+          color: 'white !important',
+        },
+      },
     },
   },
   components: {
