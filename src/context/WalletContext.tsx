@@ -1,16 +1,23 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { useToast } from '@chakra-ui/react';
+import algosdk from 'algosdk';
+import { PeraWalletConnect } from '@perawallet/connect';
+import MyAlgoConnect from '@randlabs/myalgo-connect';
+
+type WalletType = 'pera' | 'myalgo';
 
 interface WalletContextType {
   address: string | null;
   balance: string;
   isConnected: boolean;
   isConnecting: boolean;
-  connectWallet: () => Promise<string>;
+  walletType: WalletType | null;
+  connectWallet: (walletType: WalletType) => Promise<string>;
   disconnectWallet: () => void;
-  sendTransaction: (to: string, amount: string) => Promise<string>;
+  sendTransaction: (to: string, amountAlgo: string, note?: string) => Promise<string>;
   networkName: string;
   account: string | null;
+  algod: algosdk.Algodv2 | null;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -18,223 +25,156 @@ const WalletContext = createContext<WalletContextType>({
   balance: '0',
   isConnected: false,
   isConnecting: false,
+  walletType: null,
   connectWallet: async () => '',
   disconnectWallet: () => {},
   sendTransaction: async () => '',
-  networkName: 'Aptos',
+  networkName: process.env.REACT_APP_NETWORK || 'TestNet',
   account: null,
+  algod: null,
 });
 
 export const useWallet = () => useContext(WalletContext);
+
+const pera = new PeraWalletConnect();
+const myAlgo = new MyAlgoConnect();
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState('0');
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [networkName, setNetworkName] = useState('Polygon MATIC Testnet');
+  const [walletType, setWalletType] = useState<WalletType | null>(null);
   const toast = useToast();
 
-  // Gets the Petra wallet from window object
-  const getAptosWallet = () => {
-    if ('aptos' in window) {
-      return (window as AptosWindow).aptos;
-    }
-    return null;
-  };
+  const algod = useMemo(() => {
+    const token = process.env.REACT_APP_ALGOD_TOKEN || '';
+    const base = process.env.REACT_APP_ALGOD_BASE || 'https://testnet-api.algonode.cloud';
+    const port = process.env.REACT_APP_ALGOD_PORT || '';
+    return new algosdk.Algodv2(token, base, port);
+  }, []);
 
   useEffect(() => {
-    // Check if user was previously connected
-    const checkConnection = async () => {
-      const wallet = getAptosWallet();
-      if (!wallet) return;
-
-      try {
-        const storedAccount = localStorage.getItem('goldchain_wallet_account');
-        
-        if (storedAccount) {
-          // Check if wallet is still connected
-          const isConnected = await wallet.isConnected();
-          
-          if (isConnected) {
-            const accountInfo = await wallet.account();
-            
-            if (accountInfo && accountInfo.address && accountInfo.address === storedAccount) {
-              setAddress(accountInfo.address);
-              setIsConnected(true);
-              
-              // Set mock balance since Aptos doesn't provide straightforward balance info
-              // In a real app, you'd query the blockchain for the token balance
-              const mockBalance = localStorage.getItem('goldchain_wallet_balance') || '1000';
-              setBalance(mockBalance);
-
-              toast({
-                title: 'Wallet Connected',
-                description: `Connected to ${accountInfo.address.substring(0, 6)}...${accountInfo.address.substring(accountInfo.address.length - 4)}`,
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-                position: 'bottom-right',
-              });
-            }
+    const sessionWalletType = localStorage.getItem('walletType');
+    if (sessionWalletType) {
+      setWalletType(sessionWalletType as WalletType);
+      if (sessionWalletType === 'pera') {
+        pera.reconnectSession().then((accounts) => {
+          if (accounts.length) {
+            handleConnection(accounts[0], 'pera');
           }
-        }
-      } catch (error) {
-        console.error("Error checking wallet connection:", error);
+        });
       }
+    }
+
+    pera.connector?.on('disconnect', handleDisconnection);
+
+    return () => {
+      pera.connector?.off('disconnect');
     };
+  }, []);
 
-    checkConnection();
-  }, [toast]);
-
-  const connectWallet = async () => {
-    const wallet = getAptosWallet();
-    
-    if (wallet) {
-      try {
-        setIsConnecting(true);
-        
-        // Connect to Petra wallet with popup
-        const response = await wallet.connect();
-        const accountInfo = await wallet.account();
-        
-        if (accountInfo && accountInfo.address) {
-          setAddress(accountInfo.address);
-          setIsConnected(true);
-          
-          // Store wallet info
-          localStorage.setItem('goldchain_wallet_account', accountInfo.address);
-          
-          // Set mock balance
-          const mockBalance = '1000';
-          localStorage.setItem('goldchain_wallet_balance', mockBalance);
-          setBalance(mockBalance);
-          
-          toast({
-            title: 'Wallet Connected',
-            description: `Connected to Polygon MATIC Testnet`,
-            status: 'success',
-            duration: 3000,
-            isClosable: true,
-            position: 'bottom-right',
-          });
-          
-          return accountInfo.address;
-        } else {
-          throw new Error('Failed to get account address');
-        }
-      } catch (error: any) {
-        console.error("Error connecting to Petra wallet:", error);
-        
-        toast({
-          title: 'Connection Failed',
-          description: error.message || 'Could not connect to Petra wallet',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
-        
-        throw error;
-      } finally {
-        setIsConnecting(false);
-      }
-    } else {
-      toast({
-        title: 'Petra Wallet Not Found',
-        description: 'Please install Petra wallet extension to connect to Polygon MATIC',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
-      
-      // Open Petra wallet installation page
-      window.open('https://petra.app/', '_blank');
-      throw new Error('Polygon wallet is not installed');
-    }
+  const handleConnection = (addr: string, wallet: WalletType) => {
+    setAddress(addr);
+    setIsConnected(true);
+    setWalletType(wallet);
+    localStorage.setItem('walletType', wallet);
+    refreshBalance(addr);
+    toast({
+      title: 'Wallet Connected',
+      description: `Connected to ${addr.slice(0, 6)}...${addr.slice(-4)}`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+      position: 'bottom-right',
+    });
   };
 
-  const disconnectWallet = async () => {
-    const wallet = getAptosWallet();
-    
-    if (wallet) {
-      try {
-        await wallet.disconnect();
-        setAddress(null);
-        setIsConnected(false);
-        localStorage.removeItem('goldchain_wallet_account');
-        
-        toast({
-          title: 'Wallet Disconnected',
-          description: 'Your wallet has been disconnected',
-          status: 'info',
-          duration: 3000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
-      } catch (error) {
-        console.error("Error disconnecting wallet:", error);
-        
-        toast({
-          title: 'Disconnection Failed',
-          description: 'Could not disconnect from the wallet',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
-      }
-    }
+  const handleDisconnection = () => {
+    setAddress(null);
+    setIsConnected(false);
+    setWalletType(null);
+    setBalance('0');
+    localStorage.removeItem('walletType');
   };
 
-  const sendTransaction = async (to: string, amount: string): Promise<string> => {
-    const wallet = getAptosWallet();
-    
-    if (!wallet || !address) {
-      throw new Error('Wallet not connected');
-    }
-    
+  const refreshBalance = async (addr: string) => {
     try {
-      // Example transaction for Aptos
-      const transaction = {
-        arguments: [to, amount],
-        function: '0x1::coin::transfer',
-        type: 'entry_function_payload',
-        type_arguments: ['0x1::aptos_coin::AptosCoin'],
-      };
-      
-      const pendingTransaction = await wallet.signAndSubmitTransaction(transaction);
-      
+      const accountInfo = await algod.accountInformation(addr).do();
+      const microAlgos = Number(accountInfo.amount);
+      setBalance((microAlgos / 1e6).toFixed(6));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const connectWallet = async (wallet: WalletType) => {
+    try {
+      setIsConnecting(true);
+      let addr: string;
+      if (wallet === 'pera') {
+        const accounts = await pera.connect();
+        addr = accounts[0];
+      } else {
+        const accounts = await myAlgo.connect();
+        addr = accounts[0].address;
+      }
+      handleConnection(addr, wallet);
+      return addr;
+    } catch (e: any) {
       toast({
-        title: 'Transaction Sent',
-        description: `Transaction hash: ${pendingTransaction.hash.substring(0, 10)}...`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
-      
-      // Update mock balance after transaction
-      const currentBalance = parseFloat(balance);
-      const newBalance = (currentBalance - parseFloat(amount)).toString();
-      setBalance(newBalance);
-      localStorage.setItem('goldchain_wallet_balance', newBalance);
-      
-      return pendingTransaction.hash;
-    } catch (error: any) {
-      console.error("Transaction error:", error);
-      
-      toast({
-        title: 'Transaction Failed',
-        description: error.message || 'Could not complete transaction',
+        title: 'Connection Failed',
+        description: e?.message || 'Could not connect wallet',
         status: 'error',
         duration: 5000,
         isClosable: true,
         position: 'bottom-right',
       });
-      
-      throw error;
+      throw e;
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const disconnectWallet = () => {
+    if (walletType === 'pera') {
+      pera.disconnect();
+    }
+    handleDisconnection();
+  };
+
+  const sendTransaction = async (to: string, amountAlgo: string, note?: string) => {
+    if (!address) throw new Error('Wallet not connected');
+
+    const params = await algod.getTransactionParams().do();
+    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      from: address,
+      to: to,
+      amount: Math.round(parseFloat(amountAlgo) * 1e6),
+      note: note ? new TextEncoder().encode(note) : undefined,
+      suggestedParams: params,
+    });
+
+    try {
+      let signedTxn: Uint8Array | Uint8Array[];
+      if (walletType === 'pera') {
+        const txnsToSign = [{ txn, signers: [address] }];
+        const signed = await pera.signTransaction([txnsToSign as any]);
+        signedTxn = signed[0];
+      } else if (walletType === 'myalgo') {
+        const signed = await myAlgo.signTransaction(txn.toByte());
+        signedTxn = signed.blob;
+      } else {
+        throw new Error('No wallet connected');
+      }
+
+      const result = await algod.sendRawTransaction(signedTxn).do();
+      await algosdk.waitForConfirmation(algod, result.txId, 4);
+      await refreshBalance(address);
+      return result.txId;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Transaction failed');
     }
   };
 
@@ -245,21 +185,16 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         balance,
         isConnected,
         isConnecting,
+        walletType,
         connectWallet,
         disconnectWallet,
         sendTransaction,
-        networkName,
+        networkName: process.env.REACT_APP_NETWORK || 'TestNet',
         account: address,
+        algod,
       }}
     >
       {children}
     </WalletContext.Provider>
   );
 };
-
-// Add TypeScript definitions for window.ethereum
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-} 

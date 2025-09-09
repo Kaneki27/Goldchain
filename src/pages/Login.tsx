@@ -103,7 +103,7 @@ export default function Login({ setUser }: LoginProps) {
         // In a real application, this would verify the wallet signature
         const mockUser = {
           id: '2',
-          email: `${address.substring(0, 6)}...${address.substring(address.length - 4)}@polygon.wallet`,
+          email: `${address.substring(0, 6)}...${address.substring(address.length - 4)}@algorand.wallet`,
           name: 'Wallet User',
           wallet: address,
           isVerified: true,
@@ -163,7 +163,7 @@ export default function Login({ setUser }: LoginProps) {
             mb={6}
             className="shimmer-border"
           >
-            Sign in with Polygon Wallet
+            Sign in with Algorand Wallet
           </Button>
           
           <HStack mb={6}>

@@ -216,7 +216,7 @@ const Portfolio = () => {
             className="card-hover"
           >
             <StatLabel fontWeight="medium">Wallet Balance</StatLabel>
-            <StatNumber>{formatNumber(parseFloat(balance))} MATIC</StatNumber>
+            <StatNumber>{formatNumber(parseFloat(balance))} ALGO</StatNumber>
             <StatHelpText>
               <HStack>
                 <Icon as={FaWallet} color="purple.500" />
@@ -337,7 +337,7 @@ const Portfolio = () => {
                         <Tr key={position.id} _hover={{ bg: hoverBg }}>
                           <Td fontWeight="medium">{formatNumber(position.amount)} vGold</Td>
                           <Td>{(position.interest * 100).toFixed(2)}%</Td>
-                          <Td>{formatNumber(position.collateral)} MATIC</Td>
+                          <Td>{formatNumber(position.collateral)} ALGO</Td>
                           <Td>{formatDate(position.startDate)}</Td>
                           <Td>{formatDate(position.endDate)}</Td>
                           <Td>

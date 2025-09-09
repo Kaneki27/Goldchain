@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -23,6 +23,15 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  VStack,
+  Image,
+  useToast,
 } from '@chakra-ui/react';
 import {
   HamburgerIcon,
@@ -33,6 +42,7 @@ import {
 import { FaCoins, FaWallet } from 'react-icons/fa';
 import { useWallet } from '../context/WalletContext';
 import { useGold } from '../context/GoldContext';
+import goldVaultImg from '../assets/gold-vault.svg';
 
 interface NavbarProps {
   user: {
@@ -46,9 +56,13 @@ interface NavbarProps {
 
 const Navbar = ({ user, setUser }: NavbarProps) => {
   const { isOpen, onToggle } = useDisclosure();
-  const { account, balance, isConnected, connectWallet, disconnectWallet } = useWallet();
+  const { account, balance, isConnected, connectWallet, disconnectWallet, walletType } = useWallet();
   const { vGoldBalance } = useGold();
   const location = useLocation();
+  const { isOpen: isWalletModalOpen, onOpen: openWalletModal, onClose: closeWalletModal } = useDisclosure();
+  const [connecting, setConnecting] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
+  const toast = useToast();
 
   const handleLogout = () => {
     // Remove user from localStorage
@@ -59,11 +73,33 @@ const Navbar = ({ user, setUser }: NavbarProps) => {
     setUser(null);
   };
 
-  const handleConnectWallet = async () => {
+  const handleWalletSelect = async (walletType: 'pera' | 'myalgo') => {
+    setSelectedWallet(walletType);
+    setConnecting(true);
+    
     try {
-      await connectWallet();
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
+      const result = await connectWallet(walletType);
+      toast({
+        title: 'Wallet Connected',
+        description: `Successfully connected to ${result}`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
+      closeWalletModal();
+    } catch (error: any) {
+      toast({
+        title: 'Connection Failed',
+        description: error.message || 'Could not connect wallet',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
+    } finally {
+      setConnecting(false);
+      setSelectedWallet(null);
     }
   };
 
@@ -156,7 +192,7 @@ const Navbar = ({ user, setUser }: NavbarProps) => {
                 <Flex align="center" gap={2}>
                   <FaWallet color="#805AD5" />
                   <Text fontWeight="medium">
-                    {formatBalance(balance)} MATIC
+                    {formatBalance(balance)} ALGO
                   </Text>
                 </Flex>
               </Box>
@@ -217,7 +253,7 @@ const Navbar = ({ user, setUser }: NavbarProps) => {
                 </>
               ) : (
                 <Button
-                  onClick={handleConnectWallet}
+                  onClick={openWalletModal}
                   display={'inline-flex'}
                   fontSize={'sm'}
                   fontWeight={600}
@@ -239,6 +275,106 @@ const Navbar = ({ user, setUser }: NavbarProps) => {
       <Collapse in={isOpen} animateOpacity>
         <MobileNav user={user} />
       </Collapse>
+
+      <Modal isOpen={isWalletModalOpen} onClose={closeWalletModal} isCentered>
+        <ModalOverlay backdropFilter="blur(10px)" />
+        <ModalContent borderRadius="xl" className="gold-wave">
+          <ModalHeader>Connect Your Wallet</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <VStack spacing={4} align="stretch">
+              <Box 
+                p={4} 
+                borderWidth="1px" 
+                borderRadius="md" 
+                onClick={() => handleWalletSelect('pera')}
+                className="card-hover"
+                bg="white"
+                cursor="pointer"
+                position="relative"
+                overflow="hidden"
+              >
+                <HStack>
+                  <Image 
+                    src="https://pawallet.blob.core.windows.net/media/pera-wallet-logo.svg" 
+                    boxSize="50px" 
+                    alt="Pera Wallet" 
+                  />
+                  <Box>
+                    <Text fontWeight="bold">Pera Wallet</Text>
+                    <Text fontSize="sm">The official Algorand wallet</Text>
+                  </Box>
+                </HStack>
+                {connecting && selectedWallet === 'pera' && (
+                  <Flex
+                    position="absolute"
+                    top="0"
+                    left="0"
+                    right="0"
+                    bottom="0"
+                    bg="rgba(255, 255, 255, 0.8)"
+                    justify="center"
+                    align="center"
+                  >
+                    <Text>Connecting...</Text>
+                  </Flex>
+                )}
+              </Box>
+              
+              <Box 
+                p={4} 
+                borderWidth="1px" 
+                borderRadius="md" 
+                onClick={() => handleWalletSelect('myalgo')}
+                className="card-hover"
+                bg="white"
+                cursor="pointer"
+                position="relative"
+                overflow="hidden"
+              >
+                <HStack>
+                  <Image 
+                    src="https://myalgo.com/assets/images/my-algo-logo-black.svg" 
+                    boxSize="50px" 
+                    alt="MyAlgo Wallet" 
+                  />
+                  <Box>
+                    <Text fontWeight="bold">MyAlgo Wallet</Text>
+                    <Text fontSize="sm">A secure wallet for the Algorand ecosystem</Text>
+                  </Box>
+                </HStack>
+                {connecting && selectedWallet === 'myalgo' && (
+                  <Flex
+                    position="absolute"
+                    top="0"
+                    left="0"
+                    right="0"
+                    bottom="0"
+                    bg="rgba(255, 255, 255, 0.8)"
+                    justify="center"
+                    align="center"
+                  >
+                    <Text>Connecting...</Text>
+                  </Flex>
+                )}
+              </Box>
+              
+              <HStack justify="center">
+                <Image 
+                  src={goldVaultImg} 
+                  height="100px" 
+                  alt="Gold Vault" 
+                  className="gold-stack" 
+                />
+              </HStack>
+              
+              <Text fontSize="sm" color="gray.500" textAlign="center">
+                By connecting your wallet, you agree to the Terms of Service and Privacy Policy
+              </Text>
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
@@ -449,4 +585,4 @@ const NAV_ITEMS: Array<NavItem> = [
   },
 ];
 
-export default Navbar; 
+export default Navbar;

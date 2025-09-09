@@ -119,7 +119,7 @@ const Home = () => {
   
   const goldPrice = (prices['gold'] || { usd: 2450 }).usd;
   const bitcoinPrice = (prices['bitcoin'] || { usd: 65000 }).usd;
-  const maticPrice = (prices['matic-network'] || { usd: 0.85 }).usd;
+  const maticPrice = (prices['algorand'] || { usd: 0.20 }).usd;
   
   return (
     <Box overflow="hidden">
@@ -189,7 +189,7 @@ const Home = () => {
               <Badge colorScheme="purple" p={2} borderRadius="full" className="floating" style={{ animationDelay: '0.5s' }} fontSize="sm">
                 <HStack>
                   <Icon as={FaEthereum} />
-                  <Text>Polygon Network</Text>
+                  <Text>Algorand Network</Text>
                 </HStack>
               </Badge>
               
@@ -320,7 +320,7 @@ const Home = () => {
             </HStack>
             <HStack>
               <Icon as={FaEthereum} />
-              <Text fontWeight="bold">Matic: ${maticPrice.toFixed(2)}</Text>
+              <Text fontWeight="bold">ALGO: ${maticPrice.toFixed(2)}</Text>
             </HStack>
             <HStack>
               <Icon as={FaCoins} />
@@ -332,7 +332,7 @@ const Home = () => {
             </HStack>
             <HStack>
               <Icon as={FaEthereum} />
-              <Text fontWeight="bold">Matic: ${maticPrice.toFixed(2)}</Text>
+              <Text fontWeight="bold">ALGO: ${maticPrice.toFixed(2)}</Text>
             </HStack>
             <HStack>
               <Icon as={FaCoins} />
@@ -398,7 +398,7 @@ const Home = () => {
             <Feature
               icon={<Icon as={FaWallet} w={10} h={10} />}
               title={'Instant Liquidity'}
-              text={'Convert your vGold to MATIC or other cryptocurrencies instantly, 24/7, without traditional market restrictions.'}
+              text={'Convert your vGold to ALGO or other cryptocurrencies instantly, 24/7, without traditional market restrictions.'}
               delay={0.2}
             />
             <Feature
@@ -416,7 +416,7 @@ const Home = () => {
             <Feature
               icon={<Icon as={FaSyncAlt} w={10} h={10} />}
               title={'Smart Contracts'}
-              text={'All transactions are executed through transparent, audited smart contracts on the Polygon blockchain.'}
+              text={'All transactions are executed through transparent, audited smart contracts on the Algorand blockchain.'}
               delay={0.5}
             />
           </SimpleGrid>

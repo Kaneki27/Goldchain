@@ -63,7 +63,7 @@ export default function Footer() {
                 vGold
               </Tag>
               <Tag size={'md'} variant={'subtle'} colorScheme={'purple'}>
-                Polygon
+                Algorand
               </Tag>
               <Tag size={'md'} variant={'subtle'} colorScheme={'blue'}>
                 DeFi

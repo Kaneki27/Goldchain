@@ -33,7 +33,7 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Coins to track
-  const coins = ['matic-network', 'ethereum', 'bitcoin'];
+  const coins = ['algorand', 'ethereum', 'bitcoin'];
 
   const fetchPrices = async () => {
     setLoading(true);
@@ -52,7 +52,7 @@ export const PriceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       // If API fails, set some mock data so the app can still function
       setPrices({
-        'matic-network': { usd: 0.85, usd_24h_change: 2.5 },
+        'algorand': { usd: 0.20, usd_24h_change: 1.5 },
         'ethereum': { usd: 3200, usd_24h_change: 1.2 },
         'bitcoin': { usd: 65000, usd_24h_change: 0.75 }
       });

@@ -49,3 +49,26 @@ declare global {
     aptos?: PetraWallet;
   }
 } 
+
+const handleConnectWalletClick = () => {
+  try {
+    // If there is only one wallet provider, connect directly
+    if (window.ethereum?.isMetaMask && !window.ethereum?.isTrust) {
+      handleWalletSelect('metamask');
+    } else if (window.ethereum?.isTrust && !window.ethereum?.isMetaMask) {
+      handleWalletSelect('trustwallet');
+    } else {
+      // If multiple providers exist, show selection modal
+      openWalletModal();
+    }
+  } catch (error: any) {
+    toast({
+      title: 'No Wallet Detected',
+      description: 'Please install MetaMask or Trust Wallet to connect',
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'bottom-right',
+    });
+  }
+};

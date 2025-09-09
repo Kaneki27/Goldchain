@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -42,6 +42,7 @@ import {
   CloseIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@chakra-ui/icons';
@@ -51,8 +52,9 @@ import {
   FaSignOutAlt, 
   FaCoins, 
   FaExchangeAlt,
+  FaExternalLinkAlt,
+  FaEthereum
 } from 'react-icons/fa';
-import { SiAlgorand } from 'react-icons/si';
 import { useWallet } from '../context/WalletContext';
 import { useGold } from '../context/GoldContext';
 import { usePrice } from '../context/PriceContext';
@@ -68,13 +70,15 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const toast = useToast();
   
+  // Wallet connection modal
   const { isOpen: isWalletModalOpen, onOpen: openWalletModal, onClose: closeWalletModal } = useDisclosure();
   const [connecting, setConnecting] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
   
-  const algoPrice = prices['algorand']?.usd || 0;
-  const algo24hChange = prices['algorand']?.usd_24h_change || 0;
+  const maticPrice = prices['algorand']?.usd || 0;
+  const matic24hChange = prices['algorand']?.usd_24h_change || 0;
   
+  // Extract theme values to avoid conditional hooks
   const bgLight = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.600', 'white');
   const borderColorValue = useColorModeValue('gray.200', 'gray.900');
@@ -100,21 +104,25 @@ export default function Header() {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
   
-  const handleWalletSelect = async (walletType: 'pera' | 'myalgo') => {
+  const handleWalletSelect = async (walletType: string) => {
     setSelectedWallet(walletType);
     setConnecting(true);
     
     try {
-      const result = await connectWallet(walletType);
-      toast({
-        title: 'Wallet Connected',
-        description: `Successfully connected to ${formatAddress(result)}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
-      closeWalletModal();
+      try {
+        const result = await connectWallet();
+        toast({
+          title: 'Wallet Connected',
+          description: `Successfully connected to ${formatAddress(result)}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+          position: 'bottom-right',
+        });
+        closeWalletModal();
+      } else {
+        // Connect directly with Pera
+      }
     } catch (error: any) {
       toast({
         title: 'Connection Failed',
@@ -127,6 +135,29 @@ export default function Header() {
     } finally {
       setConnecting(false);
       setSelectedWallet(null);
+    }
+  };
+
+  const handleConnectWalletClick = () => {
+    try {
+      // If there is only one wallet provider, connect directly
+      if (window.ethereum.isMetaMask && !window.ethereum.isTrust) {
+        handleWalletSelect('metamask');
+      } else if (window.ethereum.isTrust && !window.ethereum.isMetaMask) {
+        handleWalletSelect('trustwallet');
+      } else {
+        // If multiple providers exist, show selection modal
+        openWalletModal();
+      }
+    } else {
+      toast({
+        title: 'No Wallet Detected',
+        description: 'Please install MetaMask or Trust Wallet to connect',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
     }
   };
 
@@ -189,21 +220,21 @@ export default function Header() {
           <Tooltip label="ALGO Price">
             <Tag 
               size="md" 
-              colorScheme={algo24hChange >= 0 ? 'green' : 'red'} 
+              colorScheme={matic24hChange >= 0 ? 'green' : 'red'} 
               borderRadius="full" 
               variant="solid" 
               className="glow"
             >
               <HStack spacing={1}>
                 <Text fontSize="xs">ALGO:</Text>
-                <Text fontWeight="bold">${algoPrice.toFixed(2)}</Text>
+                <Text fontWeight="bold">${maticPrice.toFixed(2)}</Text>
                 <Box>
                   <Icon 
-                    as={algo24hChange >= 0 ? ArrowUpIcon : ArrowDownIcon} 
+                    as={matic24hChange >= 0 ? ArrowUpIcon : ArrowDownIcon} 
                     boxSize={3} 
                   />
                   <Text fontSize="xs" as="span">
-                    {Math.abs(algo24hChange).toFixed(2)}%
+                    {Math.abs(matic24hChange).toFixed(2)}%
                   </Text>
                 </Box>
               </HStack>
@@ -231,7 +262,7 @@ export default function Header() {
                 <Tooltip label="ALGO Balance">
                   <Tag colorScheme="purple" borderRadius="full" px={3} py={2}>
                     <HStack>
-                      <Icon as={SiAlgorand} color="purple.500" />
+                      <Icon as={FaEthereum} color="purple.500" />
                       <Text>{parseFloat(balance).toFixed(4)} ALGO</Text>
                     </HStack>
                   </Tag>
@@ -286,7 +317,7 @@ export default function Header() {
               fontWeight={600}
               color={'white'}
               bg={'gold.500'}
-              onClick={openWalletModal}
+              onClick={handleConnectWalletClick}
               leftIcon={<FaWallet />}
               _hover={{
                 bg: 'gold.400',
@@ -315,7 +346,7 @@ export default function Header() {
                 p={4} 
                 borderWidth="1px" 
                 borderRadius="md" 
-                onClick={() => handleWalletSelect('pera')}
+                onClick={() => handleWalletSelect('metamask')}
                 className="card-hover"
                 bg="white"
                 cursor="pointer"
@@ -324,16 +355,16 @@ export default function Header() {
               >
                 <HStack>
                   <Image 
-                    src="https://pawallet.blob.core.windows.net/media/pera-wallet-logo.svg" 
+                    src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" 
                     boxSize="50px" 
-                    alt="Pera Wallet" 
+                    alt="MetaMask" 
                   />
                   <Box>
-                    <Text fontWeight="bold">Pera Wallet</Text>
-                    <Text fontSize="sm">The official Algorand wallet</Text>
+                    <Text fontWeight="bold">MetaMask</Text>
+                    <Text fontSize="sm">The most popular Ethereum wallet</Text>
                   </Box>
                 </HStack>
-                {connecting && selectedWallet === 'pera' && (
+                {connecting && selectedWallet === 'metamask' && (
                   <Flex
                     position="absolute"
                     top="0"
@@ -353,7 +384,7 @@ export default function Header() {
                 p={4} 
                 borderWidth="1px" 
                 borderRadius="md" 
-                onClick={() => handleWalletSelect('myalgo')}
+                onClick={() => handleWalletSelect('trustwallet')}
                 className="card-hover"
                 bg="white"
                 cursor="pointer"
@@ -362,16 +393,16 @@ export default function Header() {
               >
                 <HStack>
                   <Image 
-                    src="https://myalgo.com/assets/images/my-algo-logo-black.svg" 
+                    src="https://trustwallet.com/assets/images/favicon.png" 
                     boxSize="50px" 
-                    alt="MyAlgo Wallet" 
+                    alt="Trust Wallet" 
                   />
                   <Box>
-                    <Text fontWeight="bold">MyAlgo Wallet</Text>
-                    <Text fontSize="sm">A secure wallet for the Algorand ecosystem</Text>
+                    <Text fontWeight="bold">Trust Wallet</Text>
+                    <Text fontSize="sm">Secure multi-chain crypto wallet</Text>
                   </Box>
                 </HStack>
-                {connecting && selectedWallet === 'myalgo' && (
+                {connecting && selectedWallet === 'trustwallet' && (
                   <Flex
                     position="absolute"
                     top="0"
@@ -630,4 +661,4 @@ const MobileNavItem = ({ label, children, href, isActive }: NavItem & { isActive
       </Collapse>
     </Stack>
   );
-};
+}; 

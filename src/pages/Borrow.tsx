@@ -73,7 +73,7 @@ const Borrow = () => {
   useEffect(() => {
     if (amount && !isNaN(parseFloat(amount))) {
       const borrowAmount = parseFloat(amount);
-      // Calculate required collateral (120% of vGold value in MATIC)
+      // Calculate required collateral (120% of vGold value in ALGO)
       setCollateralAmount(borrowAmount * vGoldPrice * COLLATERAL_RATIO);
     } else {
       setCollateralAmount(0);
@@ -99,8 +99,8 @@ const Borrow = () => {
   };
 
   const getMaxBorrowAmount = (): number => {
-    // Calculate max borrow amount based on MATIC balance
-    // Max borrow = MATIC balance / (vGoldPrice * collateral ratio)
+    // Calculate max borrow amount based on ALGO balance
+    // Max borrow = ALGO balance / (vGoldPrice * collateral ratio)
     return parseFloat(balance) / (vGoldPrice * COLLATERAL_RATIO);
   };
 
@@ -124,7 +124,7 @@ const Borrow = () => {
       
       // Check if collateral is sufficient
       if (collateralAmount > parseFloat(balance)) {
-        throw new Error('Insufficient MATIC balance for collateral');
+        throw new Error('Insufficient ALGO balance for collateral');
       }
       
       // Execute borrowing
@@ -132,7 +132,7 @@ const Borrow = () => {
       
       toast({
         title: 'Borrowing successful',
-        description: `You've borrowed ${formatNumber(borrowAmount)} vGold by providing ${formatNumber(collateralAmount)} MATIC as collateral`,
+        description: `You've borrowed ${formatNumber(borrowAmount)} vGold by providing ${formatNumber(collateralAmount)} ALGO as collateral`,
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -176,7 +176,7 @@ const Borrow = () => {
       
       toast({
         title: 'Loan repaid successfully',
-        description: `You've repaid your loan of ${formatNumber(loan.amount)} vGold and your collateral of ${formatNumber(loan.collateral)} MATIC has been returned`,
+        description: `You've repaid your loan of ${formatNumber(loan.amount)} vGold and your collateral of ${formatNumber(loan.collateral)} ALGO has been returned`,
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -245,8 +245,8 @@ const Borrow = () => {
               <Heading size="md" mb={2}>Borrowing Stats</Heading>
               
               <Stat>
-                <StatLabel>MATIC Balance</StatLabel>
-                <StatNumber>{formatNumber(parseFloat(balance))} MATIC</StatNumber>
+                <StatLabel>ALGO Balance</StatLabel>
+                <StatNumber>{formatNumber(parseFloat(balance))} ALGO</StatNumber>
                 <StatHelpText>
                   Max borrowable: {formatNumber(getMaxBorrowAmount())} vGold
                 </StatHelpText>
@@ -296,7 +296,7 @@ const Borrow = () => {
             className="card-hover"
           >
             <VStack spacing={6} align="stretch">
-              <Heading size="md">Borrow vGold with MATIC Collateral</Heading>
+              <Heading size="md">Borrow vGold with ALGO Collateral</Heading>
               
               <FormControl>
                 <FormLabel>Amount to Borrow</FormLabel>
@@ -372,7 +372,7 @@ const Borrow = () => {
                   <Text fontWeight="medium">Required Collateral:</Text>
                   <HStack>
                     <Icon as={FaLock} color="blue.500" />
-                    <Text fontWeight="bold">{formatNumber(collateralAmount)} MATIC</Text>
+                    <Text fontWeight="bold">{formatNumber(collateralAmount)} ALGO</Text>
                   </HStack>
                 </HStack>
                 
@@ -383,7 +383,7 @@ const Borrow = () => {
                     <Text fontSize="sm" color="gray.500">You Provide</Text>
                     <HStack>
                       <Icon as={FaWallet} color="blue.500" />
-                      <Text fontWeight="bold">{formatNumber(collateralAmount)} MATIC</Text>
+                      <Text fontWeight="bold">{formatNumber(collateralAmount)} ALGO</Text>
                     </HStack>
                   </VStack>
                   
@@ -432,7 +432,7 @@ const Borrow = () => {
                 <Box>
                   <Text fontWeight="medium">How borrowing works:</Text>
                   <Text fontSize="sm">
-                    1. You provide MATIC as collateral
+                    1. You provide ALGO as collateral
                     <br />
                     2. You receive vGold to use until the loan term ends
                     <br />
@@ -497,7 +497,7 @@ const Borrow = () => {
                     
                     <HStack justify="space-between" fontSize="sm" mb={1}>
                       <Text color="gray.500">Collateral:</Text>
-                      <Text fontWeight="medium">{formatNumber(loan.collateral)} MATIC</Text>
+                      <Text fontWeight="medium">{formatNumber(loan.collateral)} ALGO</Text>
                     </HStack>
                     
                     <HStack justify="space-between" fontSize="sm" mb={1}>

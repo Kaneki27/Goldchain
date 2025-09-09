@@ -1,35 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ChakraProvider, extendTheme } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
-
-const theme = extendTheme({
-  colors: {
-    gold: {
-      50: '#FFF9E5',
-      100: '#FFEEB8',
-      200: '#FFE38A',
-      300: '#FFD85C',
-      400: '#FFCD2E',
-      500: '#FFC300',
-      600: '#CCA000',
-      700: '#997800',
-      800: '#665000',
-      900: '#332800',
-    },
-    brand: {
-      100: '#f7fafc',
-      500: '#718096',
-      900: '#171923',
-    },
-  },
-  fonts: {
-    heading: '"Montserrat", sans-serif',
-    body: '"Roboto", sans-serif',
-  },
-});
+import theme from './theme';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

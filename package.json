@@ -15,9 +15,6 @@
     "@types/node": "^16.18.12",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "@web3-react/core": "^8.2.3",
-    "@web3-react/injected-connector": "^6.0.7",
-    "@web3-react/walletconnect-connector": "^6.2.13",
     "axios": "^1.8.4",
     "chart.js": "^4.4.8",
     "coingecko-api": "^1.0.10",
@@ -30,14 +27,16 @@
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
-    "web3": "^1.9.0"
+    "algosdk": "^3.0.0",
+    "@perawallet/connect": "^1.4.2",
+    "@randlabs/myalgo-connect": "^1.4.2"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "vercel-build": "CI=false npm run build"
+    "vercel-build": "npm run build"
   },
   "eslintConfig": {
     "extends": [

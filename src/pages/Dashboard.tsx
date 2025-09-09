@@ -184,7 +184,7 @@ const Dashboard = () => {
               <StatHelpText>
                 <HStack>
                   <FaWallet color="#805AD5" />
-                  <Text>{formatAmount(parseFloat(balance))} MATIC in wallet</Text>
+                  <Text>{formatAmount(parseFloat(balance))} ALGO in wallet</Text>
                 </HStack>
               </StatHelpText>
             </Stat>
@@ -433,7 +433,7 @@ const Dashboard = () => {
                                     {(position.interest * 100).toFixed(1)}% Interest
                                   </Badge>
                                   <Text fontSize="xs" color="gray.500">
-                                    Collateral: {formatAmount(position.collateral)} MATIC
+                                    Collateral: {formatAmount(position.collateral)} ALGO
                                   </Text>
                                 </VStack>
                               </Flex>
